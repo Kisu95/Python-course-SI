@@ -92,19 +92,23 @@ def purchase_price_change(currency, last_price):
 
 supported_currencies = ['btc', 'eur', 'ltc', 'eth', 'bch']
 currences = {}
-
+print("______________________")
 print("Your current resources with 24h update:")
 print_current_data()
+print("______________________")
 
 while True:
+    print("______________________")
     step = input(
         "Type 'update_resource' to update your resources or something else to skip this step: ")
+    print("______________________")
     if step == 'update_resource':
         update_resource()
     else:
         break
 
 for currency in supported_currencies:
+    print("______________________")
     ticker = get_price(currency)
     percentage_change = float(ticker['last'])/float(ticker['vwap']) - 1
     value_change = float(ticker['last']) - float(ticker['vwap'])
@@ -121,3 +125,4 @@ for currency in supported_currencies:
         f"percentage change for {currency} from buy price : {purchase_price_percentage_change:.4f}")
     print(
         f"value change for {currency} from buy price: {purchase_price_value_change:.2f}")
+    print("______________________")
