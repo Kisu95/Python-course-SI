@@ -1,0 +1,2 @@
+1) Sa identyczne. Jest to spowodowane złym modelem.
+2) Im dłuższy okres symulacji wstecz (a więc i więcej danych) tym dokładniejszy powinien być wykres, w szczególności, gdy przewidujemy krótki okres czasu. 
