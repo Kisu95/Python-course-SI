@@ -12,69 +12,80 @@
 # Uwaga - zostawcie sobie czas na przeprowadzenie symulacji, w zależności od sprzętu oraz jakości Waszego kodu symulacje mogą trochę trwać.
 # (10pkt)
 
-import datetime
 import requests
-import math
+from datetime import datetime
+from math import sqrt
+import matplotlib.pyplot as plt
+import numpy as np
 
 
 daily_volumes, daily_differences, predict = [], [], []
 
 
 def date_to_timestamp(date_string):
-    date = datetime.datetime.strptime(date_string, "%m/%d/%Y")
-    timestamp = datetime.datetime.timestamp(date)
-    return timestamp
+    date = datetime.strptime(date_string, "%d/%m/%Y")
+    timestamp = datetime.timestamp(date)
+    return int(timestamp)
 
 
 def get_data(date, crypto):
     url = "https://www.bitstamp.net/api/v2/ohlc/{crypto}usd?step=86400&limit=1000&start={timer}".format(
-        timer=str(int(date_to_timestamp(date))), crypto=crypto)
-    days = (datetime.datetime.now().timestamp() -
-            float(date_to_timestamp(date))) / 86400
+        timer=str(date), crypto=crypto)
+    days = (datetime.now().timestamp() -
+            float(date)) / 86400
     return requests.get(url).json()['data']['ohlc'], int(days)
 
 
 def get_volumes(ticker):
     for day in ticker:
+        print(day)
         daily_volumes.append(float(day['volume']))
 
 
 def get_volumes_diff(daily_volumes):
     for daily_volume in daily_volumes[1:]:
-        daily_differences.append(abs(
-            (daily_volume - daily_volumes[daily_volumes.index(daily_volume)-1])/daily_volume))
+        daily_differences.append(
+            (daily_volume - daily_volumes[daily_volumes.index(daily_volume)-1])/daily_volume)
 
 
-# def simulation(data, volumens):
-#     avg, std = norm.fit(data)
-#     print(avg, std)
-#     predict = gauss(avg, std)
-#     predict.append(predict * volumens[-1] + volumens[-1])
-#     plt.plot(arange(0, len(volumens)), volumens, color='g')
-#     plt.plot(arange(len(volumens), len(predict) +
-#                     len(volumens)), predict, color='b')
-#     plt.grid(True)
-#     plt.xlabel("Days")
-#     plt.ylabel("Volume")
-#     plt.title("Prediction of volume")
-#     plt.legend(['Historical data', 'Predicted data'])
+def changes_ava(data, days=30):
+    new_data = data.copy()
+    new_values = []
+    for i in range(days):
+        avg = np.sum(new_data) / len(new_data)
+        avg = avg * (1+daily_differences[i])
+        new_data.pop(0)
+        new_data.append(avg)
+        new_values.append(avg)
+    return new_values
 
 
-# def pointer(predict):
-#     med = median(predict)
-#     avg, std = norm.fit(predict)
-#     print('One simulation: ', predict[0])
-#     print('Madian: ', med, '\nAvarange: ', avg, '\nStd: ', std)
+def simulation(simulation, days):
+    simulated_data = []
+    for i in range(simulation):
+        data = changes_ava(daily_volumes, days)
+        simulated_data.append(data)
+    simulated_result = []
+    for i in range(len(simulated_data[0])):
+        index_values = []
+        for j in range(len(simulated_data)):
+            index = simulated_data[j][i]
+            index_values.append(index)
+        avarage = np.sum(index_values) / len(index_values)
+        simulated_result.append(avarage)
+    return simulated_result
 
 
-# def calculate(date, crypto):
-#     ticker, days = get_data(date, crypto)
-#     get_volumes(ticker)
-#     get_volumes_diff(daily_volumes)
-#     for i in range(days):
-#         simulation(daily_differences[i], daily_volumes[i])
-#     pointer(predict)
-#     plt.show()
+date = date_to_timestamp("20/05/2020")
+ticker, days = get_data(date, 'btc')
+get_volumes(ticker)
+get_volumes_diff(daily_volumes)
+print()
+predicted = changes_ava(daily_volumes, days)
+simulated = simulation(100, days)
 
-
-# calculate("05/10/2020", 'btc')
+fig = plt.figure()
+plt.axis([0, 20, 0, 20000])
+plt.plot(daily_volumes, '-r')
+plt.plot(range(11, 21), predicted, '-b')
+plt.show()
